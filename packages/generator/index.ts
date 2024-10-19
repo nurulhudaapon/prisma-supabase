@@ -1,20 +1,20 @@
-import { generatorHandler } from '@prisma/generator-helper';
-import * as fs from 'fs';
-import * as path from 'path';
-import { generateTypes } from '@prisma-generator-supabase/core';
+import { generateTypes } from "@prisma-generator-supabase/core";
+import { generatorHandler } from "@prisma/generator-helper";
+import * as fs from "fs/promises";
 
 generatorHandler({
   onManifest() {
     return {
-      defaultOutput: './supabase.ts',
-      prettyName: 'Prisma Supabase Generator',
+      defaultOutput: "./database.ts",
+      prettyName: "Supabase Types",
     };
   },
   async onGenerate(options) {
     const types = generateTypes(options.dmmf);
-    fs.writeFileSync(
-      path.join(__dirname, 'supabase.ts'),
-      types
-    );
+    const writeLocation = options.generator.output?.value;
+
+    if (!writeLocation) throw new Error("No output location provided");
+
+    await fs.writeFile(writeLocation, types);
   },
 });

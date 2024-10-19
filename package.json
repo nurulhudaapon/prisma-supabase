@@ -3,7 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "bin": {
-    "prisma-generator-supabase": "dist/cli.js"
+    "prisma-generator-supabase": "dist/generator.js"
   },
   "workspaces": [
     "packages/*"

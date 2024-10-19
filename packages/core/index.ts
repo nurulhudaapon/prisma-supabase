@@ -2,8 +2,13 @@ import { DMMF } from "@prisma/generator-helper";
 
 export function generateTypes(dmmf: DMMF.Document) {
   const { datamodel } = dmmf;
+  const schemas = generateSchemas(datamodel);
+  const output = generateOutput(schemas);
+  return output;
+}
 
-  const schemas = [
+function generateSchemas(datamodel: DMMF.Datamodel) {
+  return [
     {
       compositeTypes: datamodel.types,
       enums: datamodel.enums.map(stringifyName),
@@ -13,200 +18,139 @@ export function generateTypes(dmmf: DMMF.Document) {
       views: [],
     },
   ];
+}
 
-  let output = `
+type Schema = ReturnType<typeof generateSchemas>[number];
+
+function generateOutput(schemas: Schema[]) {
+  return `
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  ${schemas
-    .sort(({ name: a }, { name: b }) => a.localeCompare(b))
-    .map((schema) => {
-      const schemaTables = [...schema.tables].sort(alphaSort);
-      const schemaEnums = schema.enums
-        .filter((type) => type.values.length > 0)
-        .sort(alphaSort);
-      const schemaCompositeTypes = schema.compositeTypes
-        .filter((type) => type.fields.length > 0)
-        .sort(alphaSort);
-
-      return `${JSON.stringify(schema.name)}: {
-          Tables: {
-            ${
-              !schemaTables.length
-                ? "[_ in never]: never"
-                : schemaTables.map(
-                    (table) => `${table.name}: {
-                  Row: {
-                    ${table.fields
-                      .filter(filterField)
-                      .sort(alphaSort)
-                      .map(
-                        (col) =>
-                          `${col.name}: ${prismaTypeToTsType(col)} ${col.isRequired ? "" : "| null"}`
-                      )}
-                  }
-                  Insert: {
-                    ${table.fields
-                      .filter(filterField)
-                      .sort(alphaSort)
-                      .map((col) => {
-                        let output = col.name;
-                        if (col.isGenerated) return `${output}?: never`;
-
-                        if (!col.isRequired || col.hasDefaultValue)
-                          output += "?:";
-                        else output += ":";
-
-                        output += `${prismaTypeToTsType(col)} ${col.isRequired ? "" : "| null"}`
-
-                        return output;
-                      })}
-                  }
-                  Update: {
-                    ${table.fields
-                      .filter(filterField)
-                      .sort(alphaSort)
-                      .map((col) => {
-                        let output = col.name;
-                        if (col.isGenerated) return `${output}?: never`;
-
-                        output += `?: ${prismaTypeToTsType(col)}`;
-
-                        if (!col.isRequired) output += "| null";
-
-                        return output;
-                      })}
-                  }
-                  Relationships: [
-                    ${table.fields
-                      .filter((field) => field.relationName && field?.relationFromFields?.length && field?.relationToFields?.length)
-                      .sort(alphaSort)
-                      .map(
-                        (relationship) => `{
-                              foreignKeyName: ${JSON.stringify(relationship.relationName)}
-                              columns: ${JSON.stringify(relationship.relationFromFields)}
-                              isOneToOne: ${relationship.isList};
-                              referencedRelation: ${JSON.stringify(relationship.type)}
-                              referencedColumns: ${JSON.stringify(relationship.relationToFields)}
-                            }`
-                      )}
-                  ]
-                }`
-                  )
-            }
-          }
-          Views: {
-            ${
-              "/* No support for views */"
-              //   schemaViews.length === 0
-              //     ? '[_ in never]: never'
-              //     : schemaViews.map(
-              //         (view) => `${JSON.stringify(view.name)}: {
-              //       Row: {
-              //         ${columnsByTableId[view.id].map(
-              //           (column) =>
-              //             `${JSON.stringify(column.name)}: ${pgTypeToTsType(column.format, {
-              //               types,
-              //               schemas,
-              //               tables,
-              //               views,
-              //             })} ${column.is_nullable ? '| null' : ''}`
-              //         )}
-              //       }
-              //       ${
-              //         'is_updatable' in view && view.is_updatable
-              //           ? `Insert: {
-              //                ${columnsByTableId[view.id].map((column) => {
-              //                  let output = JSON.stringify(column.name)
-
-              //                  if (!column.is_updatable) {
-              //                    return `${output}?: never`
-              //                  }
-
-              //                  output += `?: ${pgTypeToTsType(column.format, { types, schemas, tables, views })} | null`
-
-              //                  return output
-              //                })}
-              //              }
-              //              Update: {
-              //                ${columnsByTableId[view.id].map((column) => {
-              //                  let output = JSON.stringify(column.name)
-
-              //                  if (!column.is_updatable) {
-              //                    return `${output}?: never`
-              //                  }
-
-              //                  output += `?: ${pgTypeToTsType(column.format, { types, schemas, tables, views })} | null`
-
-              //                  return output
-              //                })}
-              //              }
-              //             `
-              //           : ''
-              //       }Relationships: [
-              //         ${relationships
-              //           .filter(
-              //             (relationship) =>
-              //               relationship.schema === view.schema &&
-              //               relationship.referenced_schema === view.schema &&
-              //               relationship.relation === view.name
-              //           )
-              //           .sort(({ foreign_key_name: a }, { foreign_key_name: b }) =>
-              //             a.localeCompare(b)
-              //           )
-              //           .map(
-              //             (relationship) => `{
-              //             foreignKeyName: ${JSON.stringify(relationship.foreign_key_name)}
-              //             columns: ${JSON.stringify(relationship.columns)}
-              //             ${
-              //               detectOneToOneRelationships
-              //                 ? `isOneToOne: ${relationship.is_one_to_one};`
-              //                 : ''
-              //             }referencedRelation: ${JSON.stringify(relationship.referenced_relation)}
-              //             referencedColumns: ${JSON.stringify(relationship.referenced_columns)}
-              //           }`
-              //           )}
-              //       ]
-              //     }`
-              //       )
-            }
-          }
-          Functions: {
-            ${"/* No support for functions */"}
-          }
-          Enums: {
-            ${
-              !schemaEnums.length
-                ? "[_ in never]: never"
-                : schemaEnums.map(
-                    (enum_) =>
-                      `${enum_.name}: ${enum_.values
-                        .map((variant) => JSON.stringify(variant.name))
-                        .join("|")}`
-                  )
-            }
-          }
-          CompositeTypes: {
-            ${
-              !schemaCompositeTypes.length
-                ? "[_ in never]: never"
-                : schemaCompositeTypes.map(
-                    ({ name, fields }) =>
-                      `${name}: {
-                        ${fields.map((field) => {
-                          let tsType = "unknown";
-                          if (field.type)
-                            tsType = `${prismaTypeToTsType(field)} | null`;
-                          return `${field.name}: ${tsType}`;
-                        })}
-                      }`
-                  )
-            }
-          }
-        }`;
-    })}
+${schemas.sort((a, b) => a.name.localeCompare(b.name)).map(generateSchemaOutput).join('')}
 }
 
+${generateHelperTypes()}
+`;
+}
+
+function generateSchemaOutput(schema: Schema) {
+  const schemaTables = [...schema.tables].sort(alphaSort);
+  const schemaEnums = schema.enums.filter((type) => type.values.length > 0).sort(alphaSort);
+  const schemaCompositeTypes = schema.compositeTypes.filter((type: any) => type.fields.length > 0).sort(alphaSort);
+
+  return `  ${schema.name}: {
+    Tables: {
+${generateTablesOutput(schemaTables)}
+    }
+    Views: {
+      ${generateViewsOutput()}
+    }
+    Functions: {
+      ${generateFunctionsOutput()}
+    }
+    Enums: {
+${generateEnumsOutput(schemaEnums)}
+    }
+    CompositeTypes: {
+${generateCompositeTypesOutput(schemaCompositeTypes)}
+    }
+  }`;
+}
+
+function generateTablesOutput(schemaTables: DMMF.Model[]) {
+  return !schemaTables.length
+    ? "      [_ in never]: never"
+    : schemaTables.map((table) => `      ${table.name}: {
+        Row: {
+${generateTableRowOutput(table)}
+        }
+        Insert: {
+${generateTableInsertOutput(table)}
+        }
+        Update: {
+${generateTableUpdateOutput(table)}
+        }
+        Relationships: [
+${generateTableRelationshipsOutput(table)}
+        ]
+      }`).join(';\n');
+}
+
+function generateTableRowOutput(table: DMMF.Model) {
+  return table.fields
+    .filter(filterField)
+    .sort(alphaSort)
+    .map((col: any) => `          ${col.name}: ${prismaTypeToTsType(col)}${col.isRequired ? "" : " | null"}`)
+    .join(';\n');
+}
+
+function generateTableInsertOutput(table: DMMF.Model) {
+  return table.fields
+    .filter(filterField)
+    .sort(alphaSort)
+    .map((col: any) => {
+      if (col.isGenerated) return `          ${col.name}?: never`;
+      const type = `${prismaTypeToTsType(col)}${col.isRequired ? "" : " | null"}`;
+      return (!col.isRequired || col.hasDefaultValue) ? `          ${col.name}?: ${type}` : `          ${col.name}: ${type}`;
+    })
+    .join(';\n');
+}
+
+function generateTableUpdateOutput(table: DMMF.Model) {
+  return table.fields
+    .filter(filterField)
+    .sort(alphaSort)
+    .map((col: any) => {
+      if (col.isGenerated) return `          ${col.name}?: never`;
+      return `          ${col.name}?: ${prismaTypeToTsType(col)}${!col.isRequired ? " | null" : ""}`;
+    })
+    .join(';\n');
+}
+
+function generateTableRelationshipsOutput(table: DMMF.Model) {
+  return table.fields
+    .filter((field) => field.relationName && field?.relationFromFields?.length && field?.relationToFields?.length)
+    .sort(alphaSort)
+    .map((relationship) => `          {
+            foreignKeyName: "${relationship.relationName}";
+            columns: ${JSON.stringify(relationship.relationFromFields)};
+            isOneToOne: ${relationship.isList};
+            referencedRelation: "${relationship.type}";
+            referencedColumns: ${JSON.stringify(relationship.relationToFields)}
+          }`)
+    .join(',\n');
+}
+
+function generateViewsOutput() {
+  return "/* No support for views */";
+}
+
+function generateFunctionsOutput() {
+  return "/* No support for functions */";
+}
+
+function generateEnumsOutput(schemaEnums: DMMF.DatamodelEnum[]) {
+  return !schemaEnums.length
+    ? "      [_ in never]: never"
+    : schemaEnums.map((enum_) => `      ${enum_.name}: ${enum_.values.map((variant: any) => `"${variant.name}"`).join(" | ")}`)
+      .join('\n');
+}
+
+function generateCompositeTypesOutput(schemaCompositeTypes: DMMF.Model[]) {
+  return !schemaCompositeTypes.length
+    ? "      [_ in never]: never"
+    : schemaCompositeTypes.map(({ name, fields }) => `      ${name}: {
+${fields.map((field: any) => {
+          const tsType = field.type ? `${prismaTypeToTsType(field)} | null` : "unknown";
+          return `        ${field.name}: ${tsType}`;
+        }).join(',\n')}
+      }`)
+    .join(',\n\n');
+}
+
+function generateHelperTypes() {
+  return `
 type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
@@ -298,10 +242,8 @@ export type CompositeTypes<
   ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
     ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
-    : never;
+    : never
 `;
-
-  return output;
 }
 
 function prismaTypeToTsType(field: DMMF.Field) {
@@ -316,12 +258,10 @@ function prismaTypeToTsType(field: DMMF.Field) {
   return field.type;
 }
 
-// BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String
 const PRISMA_TO_TS_TYPE = {
   BigInt: "number",
   Boolean: "boolean",
   Bytes: "string",
-  //   DateTime: "Date",
   DateTime: "string",
   Decimal: "number",
   Float: "number",
@@ -339,6 +279,9 @@ function filterField(field: DMMF.Field) {
 }
 
 function stringifyName<T extends { name: string }>(entity: T): T {
+  const isValidJsKey = entity.name.match(/^[a-zA-Z_$][a-zA-Z_$0-9]*$/);
+  if (isValidJsKey) return entity;
+
   return {
     ...entity,
     name: JSON.stringify(entity.name),
