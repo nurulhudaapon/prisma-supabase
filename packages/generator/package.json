@@ -1,0 +1,5 @@
+{
+  "name": "@prisma-generator-supabase/generator",
+  "module": "index.ts",
+  "type": "module"
+}
