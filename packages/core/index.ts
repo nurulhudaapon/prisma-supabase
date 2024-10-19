@@ -5,30 +5,14 @@ export function generateTypes(dmmf: DMMF.Document) {
 
   const schemas = [
     {
+      compositeTypes: datamodel.types,
+      enums: datamodel.enums,
+      functions: [],
       name: "public",
       tables: datamodel.models,
       views: [],
-      functions: [],
-      enums: datamodel.enums,
-      compositeTypes: datamodel.types,
     },
   ];
-  // BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String
-  const PRISMA_TO_TS_TYPE = {
-    BigInt: "number",
-    Boolean: "boolean",
-    Bytes: "string",
-    DateTime: "Date",
-    Decimal: "number",
-    Float: "number",
-    Int: "number",
-    JSON: "JSON",
-    String: "string",
-  };
-
-  function prismaTypeToTsType(type: string) {
-    return PRISMA_TO_TS_TYPE[type as keyof typeof PRISMA_TO_TS_TYPE];
-  }
 
   let output = `
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
@@ -46,9 +30,7 @@ export type Database = {
       const schemaCompositeTypes = schema.compositeTypes
         .filter((type) => type.fields.length > 0)
         .sort(({ name: a }, { name: b }) => a.localeCompare(b));
-      const relationships = schema.tables.flatMap((table) =>
-        table.fields.filter((field) => field)
-      );
+
       return `${JSON.stringify(schema.name)}: {
           Tables: {
             ${
@@ -64,7 +46,7 @@ export type Database = {
                           (column) =>
                             `${JSON.stringify(
                               column.name
-                            )}: ${prismaTypeToTsType(column.type)} ${
+                            )}: ${prismaTypeToTsType(column)} ${
                               !column.isRequired ? "| null" : ""
                             }`
                         ),
@@ -90,7 +72,7 @@ export type Database = {
                           output += ":";
                         }
 
-                        output += prismaTypeToTsType(column.type);
+                        output += prismaTypeToTsType(column);
 
                         return output;
                       })}
@@ -105,7 +87,7 @@ export type Database = {
                           return `${output}?: never`;
                         }
 
-                        output += `?: ${prismaTypeToTsType(column.type)}`;
+                        output += `?: ${prismaTypeToTsType(column)}`;
 
                         if (!column.isRequired) {
                           output += "| null";
@@ -115,26 +97,25 @@ export type Database = {
                       })}
                   }
                   Relationships: [
-                    ${
-                        table.fields
-                            .filter(field => field.relationName)
-                            .sort(
-                              (a, b) =>
-                                a.name.localeCompare(b.name) || a.relationName!.localeCompare(b.relationName!)
-                            )
-                            .map(
-                              (relationship) => `{
+                    ${table.fields
+                      .filter((field) => field.relationName)
+                      .sort(
+                        (a, b) =>
+                          a.name.localeCompare(b.name) ||
+                          a.relationName!.localeCompare(b.relationName!)
+                      )
+                      .map(
+                        (relationship) => `{
                               foreignKeyName: ${JSON.stringify(relationship.relationName)}
                               columns: ${JSON.stringify(relationship.relationToFields)}
                               ${
                                 relationship.isList
                                   ? `isOneToOne: ${relationship.isList};`
-                                  : ''
+                                  : ""
                               }referencedRelation: ${JSON.stringify(relationship.name)}
                               referencedColumns: ${JSON.stringify(relationship.relationFromFields)}
                             }`
-                            )
-                    }
+                      )}
                   ]
                 }`
                   )
@@ -226,7 +207,7 @@ export type Database = {
                 : schemaEnums.map(
                     (enum_) =>
                       `${JSON.stringify(enum_.name)}: ${enum_.values
-                        .map((variant) => JSON.stringify(variant))
+                        .map((variant) => JSON.stringify(variant.name))
                         .join("|")}`
                   )
             }
@@ -349,3 +330,29 @@ export type CompositeTypes<
 
   return output;
 }
+
+function prismaTypeToTsType(field: DMMF.Field) {
+    if (field.kind === "scalar") {
+      return PRISMA_TO_TS_TYPE[field.type as keyof typeof PRISMA_TO_TS_TYPE];
+    }
+
+    if (field.kind === "enum") {
+      return `Database['public']['Enums']['${field.type}']`
+    }
+  
+    return field.type;
+  }
+
+  
+// BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String
+const PRISMA_TO_TS_TYPE = {
+  BigInt: "number",
+  Boolean: "boolean",
+  Bytes: "string",
+  DateTime: "Date",
+  Decimal: "number",
+  Float: "number",
+  Int: "number",
+  JSON: "JSON",
+  String: "string",
+} as const;
