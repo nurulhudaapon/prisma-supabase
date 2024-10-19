@@ -1,11 +1,12 @@
 {
-  "name": "prisma-generator-supabase",
-  "version": "0.0.1-alpha.9",
+  "name": "prisma-supabase",
+  "version": "0.0.1-alpha.1",
   "main": "dist/generator.js",
   "scripts": {
     "build": "npx tsc ./src/* --outDir dist",
     "watch": "npx tsc ./src/* --outDir dist --watch",
-    "clean": "rm -rf dist **/**/node_modules node_modules tmp"
+    "clean": "rm -rf dist **/**/node_modules node_modules tmp",
+    "publish": "npm run build && npm publish"
   },
   "license": "MIT",
   "files": [
@@ -19,6 +20,10 @@
   "keywords": [
     "prisma",
     "prisma-generator",
+    "prisma-supabase",
+    "supabase-types",
+    "postgrest-types",
+    "postgrest",
     "supabase",
     "code-generation",
     "typescript"

@@ -4,7 +4,8 @@ datasource db {
 }
 
 generator supabase {
-  provider = "prisma-generator-supabase"
+  provider = "prisma-supabase" 
+  output   = "prisma/database.ts" // Optional: Defaults to ./prisma/database.ts
 }
 
 /// User
