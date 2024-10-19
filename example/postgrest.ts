@@ -4,10 +4,10 @@ import { type Database } from "./prisma/database";
 // PostgREST Example
 const postgrest = new PostgrestClient<Database>('');
 
-async function postgrestExample() {
-  const user = await postgrest.from('User').select('*').limit(1).single();
-  console.log(user.data?.role);
+postgrest.from('User').select('*').limit(1).single().then((res) => {
+  console.log(res.data?.id);
+});
 
-  const userWithPosts = await postgrest.from('User').select('*, Post(*)').limit(1).single();
-  console.log(userWithPosts.data?.Post[0].authorId);
-}
+postgrest.from('User').select('*, Post(*)').limit(1).single().then((res) => {
+  console.log(res.data?.Post[0].content);
+});

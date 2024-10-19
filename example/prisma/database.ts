@@ -25,6 +25,8 @@ export type Database = {
 					id: string;
 					/** Whether the post is published. */
 					published: boolean;
+					/** The status of the post. */
+					status: Database['public']['Enums']['PostStatus'];
 					/** The title of the post. */
 					title: string;
 				};
@@ -42,6 +44,8 @@ export type Database = {
 					id?: string;
 					/** Whether the post is published. */
 					published?: boolean;
+					/** The status of the post. */
+					status?: Database['public']['Enums']['PostStatus'];
 					/** The title of the post. */
 					title: string;
 				};
@@ -59,12 +63,12 @@ export type Database = {
 					id?: string;
 					/** Whether the post is published. */
 					published?: boolean;
+					/** The status of the post. */
+					status?: Database['public']['Enums']['PostStatus'];
 					/** The title of the post. */
 					title?: string;
 				};
 				Relationships: [
-					/** The user who wrote the post. */
-
 					{
 						foreignKeyName: 'PostToUser';
 						columns: ['authorId'];
@@ -140,10 +144,21 @@ export type Database = {
 		};
 		Enums: {
 			/**
+			 * Post status
+			 *
+			 * This enum defines the possible statuses a post can have in the system.
+			 * It is used to determine the publication status of a post.
+			 * @member **DRAFT**: A draft post.
+			 * @member **PUBLISHED**: A published post
+			 */
+			PostStatus: 'DRAFT' | 'PUBLISHED';
+			/**
 			 * User role
 			 *
 			 * This enum defines the possible roles a user can have in the system.
 			 * It is used to determine the level of access and permissions for each user.
+			 * @member **USER**: A regular user.
+			 * @member **ADMIN**: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
 			 */
 			UserRole: 'USER' | 'ADMIN';
 		};

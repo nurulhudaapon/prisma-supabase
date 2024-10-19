@@ -4,10 +4,10 @@ import { type Database } from "./prisma/database";
 // Supabase Example
 const supabase = createClient<Database>('', '');
 
-async function supabaseExample() {
-  const user = await supabase.from('User').select('*').limit(1).single();
-  console.log(user.data?.role);
+supabase.from('User').select('*').limit(1).single().then((res) => {
+  console.log(res.data?.id);
+});
 
-  const userWithPosts = await supabase.from('User').select('*, Post(*)').limit(1).single();
-  console.log(userWithPosts.data?.Post[0].authorId);
-}
+supabase.from('User').select('*, Post(*)').limit(1).single().then((res) => {
+  console.log(res.data?.Post[0].content);
+});

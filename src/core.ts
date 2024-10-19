@@ -56,7 +56,7 @@ function generateTypeDefinitions(schemas: SchemaObject[], generatorConfig: Gener
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-${sortedSchemas.map(schema => generateSchemaDefinition(schema, generatorConfig)).join('')}
+${sortedSchemas.map((schema) => generateSchemaDefinition(schema, generatorConfig)).join('')}
 }
 
 ${generateHelperTypes()}
@@ -71,7 +71,7 @@ ${generateHelperTypes()}
 function generateSchemaDefinition(schema: SchemaObject, generatorConfig: GeneratorConfig): string {
   const schemaTables = [...schema.tables].sort(alphaSort);
   const schemaEnums = schema.enums.filter((type) => type.values.length > 0).sort(alphaSort);
-  const schemaCompositeTypes = schema.compositeTypes.filter((type: any) => type.fields.length > 0).sort(alphaSort);
+  const schemaCompositeTypes = schema.compositeTypes.filter((type) => type.fields.length > 0).sort(alphaSort);
 
   return `
   ${schema.name}: {
@@ -115,7 +115,7 @@ function generateTablesDefinition(schemaTables: DMMF.Model[], generatorConfig: G
           ${generateTableUpdateDefinition(table, generatorConfig)}
         }
         Relationships: [
-  ${generateTableRelationshipsDefinition(table, generatorConfig)}
+          ${generateTableRelationshipsDefinition(table, generatorConfig)}
         ]
       }`
     )
@@ -133,7 +133,7 @@ function generateTableRowDefinition(table: DMMF.Model, generatorConfig: Generato
     .sort(alphaSort)
     .map((col) => {
       const type = `${prismaTypeToTsType(col)}${col.isRequired ? '' : ' | null'}`;
-      const typeDeclaration = `          ${col.name}: ${type}`;
+      const typeDeclaration = `${col.name}: ${type}`;
       return renderDoc(col.documentation, generatorConfig) + typeDeclaration;
     })
     .join('\n');
@@ -198,7 +198,7 @@ function generateTableRelationshipsDefinition(table: DMMF.Model, generatorConfig
             referencedRelation: "${relationship.type}"
             referencedColumns: ${JSON.stringify(relationship.relationToFields)}
           }`;
-      return renderDoc(relationship.documentation, generatorConfig) + relationshipDeclaration;
+      return relationshipDeclaration;
     })
     .join(',\n');
 }
@@ -228,10 +228,30 @@ function generateEnumsDefinition(schemaEnums: DMMF.DatamodelEnum[], generatorCon
   if (!schemaEnums.length) return '[_ in never]: never';
 
   return schemaEnums
-    .map(
-      (enum_) => `
-      ${renderDoc(enum_.documentation, generatorConfig)}${enum_.name}: ${enum_.values.map((variant: any) => `"${variant.name}"`).join(' | ')}`
-    )
+    .map((enm) => {
+      const enumRootDoc = renderDoc(enm.documentation, generatorConfig, { noEndingStar: true });
+      const enumMemberDocs = renderDoc(
+        enm.values
+              // @ts-expect-error: documentation is not typed
+          .filter((member) => !!member?.documentation?.trim())
+          .map(
+            (member) =>
+              // @ts-expect-error: documentation is not typed
+              `\n@member **${member.name}**: ${member.documentation?.split('\n').join(' ')}`
+          ),
+        generatorConfig,
+        {
+          noStartingStar: !!enm.documentation,
+        }
+      );
+
+      // @ts-expect-error: documentation is not typed
+      const hasMemberDocs = enm.values.some((member) => !!member?.documentation?.trim());
+
+      const finalEnumDoc = `${enumRootDoc}${hasMemberDocs ? enumMemberDocs : ''}`;
+
+      return `${finalEnumDoc}${enm.name}: ${enm.values.map((member) => `"${member.name}"`).join(' | ')}`;
+    })
     .join('\n');
 }
 
@@ -240,19 +260,22 @@ function generateEnumsDefinition(schemaEnums: DMMF.DatamodelEnum[], generatorCon
  * @param schemaCompositeTypes An array of DMMF Model objects representing composite types
  * @returns A string containing the composite types definition
  */
-function generateCompositeTypesDefinition(schemaCompositeTypes: DMMF.Model[], generatorConfig: GeneratorConfig): string {
+function generateCompositeTypesDefinition(
+  schemaCompositeTypes: DMMF.Model[],
+  generatorConfig: GeneratorConfig
+): string {
   if (!schemaCompositeTypes.length) return '[_ in never]: never';
 
   return schemaCompositeTypes
     .map(
       ({ name, fields, documentation }) => `
       ${renderDoc(documentation, generatorConfig)}${name}: {
-${fields
-  .map((field: any) => {
-    const tsType = field.type ? `${prismaTypeToTsType(field)} | null` : 'unknown';
-    return `${renderDoc(field.documentation, generatorConfig)}${field.name}: ${tsType}`;
-  })
-  .join(',\n')}
+        ${fields
+          .map((field) => {
+            const tsType = field.type ? `${prismaTypeToTsType(field)} | null` : 'unknown';
+            return `${renderDoc(field.documentation, generatorConfig)}${field.name}: ${tsType}`;
+          })
+          .join(',\n')}
       }`
     )
     .join(',\n\n');
@@ -427,14 +450,22 @@ function stringifyName<T extends { name: string }>(entity: T): T {
  * @param doc The documentation string to render
  * @returns A formatted multi-line JSDoc comment
  */
-function renderDoc(doc: string | null | undefined, generatorConfig: GeneratorConfig): string {
-  if (!doc || generatorConfig.enableDocumentation === 'false') return '';
-
-  const lines = doc.split('\n').map((line) => line.trim());
-
-  if (lines.length === 1) {
-    return `/** ${lines[0]} */\n`;
+function renderDoc(
+  doc: string | null | undefined | string[],
+  generatorConfig: GeneratorConfig,
+  options?: {
+    noEndingStar?: boolean;
+    noStartingStar?: boolean;
   }
+): string {
+  if (!doc || generatorConfig.enableDocumentation === 'false') return '';
+  const lines = Array.isArray(doc) ? doc.map((line) => line.trim()) : doc.split('\n').map((line) => line.trim());
 
-  return ['/**', ...lines.map((line) => ` * ${line}`), ' */\n'].join('\n');
+  if (lines.length === 1) return `/** ${lines[0]} */\n`;
+
+  const startLine = options?.noStartingStar ? '' : '/**';
+  const contentLines = lines.map((line) => ` * ${line}`);
+  const endLine = options?.noEndingStar ? '' : ' */';
+
+  return [startLine, ...contentLines, endLine, ''].filter(Boolean).join('\n') + '\n';
 }

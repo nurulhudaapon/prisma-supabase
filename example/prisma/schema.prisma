@@ -59,6 +59,9 @@ model Post {
   /// The user who wrote the post.
   authorId  String  @db.Uuid
 
+  /// The status of the post.
+  status   PostStatus @default(DRAFT)
+
   /// The user who wrote the post.
   author    User    @relation(fields: [authorId], references: [id])
 }
@@ -76,4 +79,15 @@ enum UserRole {
   /// Administrators can typically access all features, manage other users,
   /// and perform system-wide operations that are not available to regular users.
   ADMIN
+}
+
+/// Post status
+///
+/// This enum defines the possible statuses a post can have in the system.
+/// It is used to determine the publication status of a post.
+enum PostStatus {
+  /// A draft post.
+  DRAFT
+  /// A published post
+  PUBLISHED
 }

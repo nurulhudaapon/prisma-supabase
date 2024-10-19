@@ -1,6 +1,6 @@
 {
   "name": "prisma-supabase",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.2",
   "main": "dist/generator.js",
   "scripts": {
     "build": "npx tsc ./src/* --outDir dist",
@@ -9,7 +9,8 @@
   },
   "license": "MIT",
   "files": [
-    "dist"
+    "dist",
+    "assets"
   ],
   "description": "Supabase types generator from Prisma schema",
   "author": {

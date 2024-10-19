@@ -1,25 +1,36 @@
 # Prisma Supabase Generator
 
-A Prisma generator that creates types for the @supabase/supabase-js or @supabase/postgrest-js client without the need for an online or dockerized database, resulting in faster generation times. This is particularly useful for projects that only use PostgREST.
+A Prisma generator that creates types for the [@supabase/supabase-js](https://github.com/supabase/supabase-js) or [@supabase/postgrest-js](https://github.com/supabase/postgrest-js) client without the need for an online or dockerized database, resulting in faster generation times. This is particularly useful for projects that only use PostgREST.
+
+<!-- Attach Image from Assets -->
+![Prisma Supabase Generator](./assets/prisma-supabase-demo-1.gif)
 
 ## Installation
 
 To use this generator, add it to your Prisma project. First, install the package:
 
+NPM
 ```sh
-# NPM
 npm i -D prisma-supabase
+```
 
-# Yarn
+Yarn
+```sh
 yarn add -D prisma-supabase
+```
 
-# PNPM
+PNPM
+```sh
 pnpm add -D prisma-supabase
+```
 
-# Deno 2.x
+Deno 2.x
+```sh
 deno add -D prisma-supabase
+```
 
-# Bun
+Bun
+```sh
 bun add -D prisma-supabase
 ```
 
@@ -54,36 +65,38 @@ Here's an example of how to use the generated types with Supabase:
 
 ```typescript
 import { createClient } from "@supabase/supabase-js";
-import { Database } from "./prisma/database";
+import { type Database } from "./prisma/database";
 
-const supabase = createClient<Database>('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
+// Supabase Example
+const supabase = createClient<Database>('', '');
 
-async function main() {
-  // Query a single user
-  const user = await supabase.from('User').select('*').limit(1).single();
-  console.log(user.data?.role);
+supabase.from('User').select('*').limit(1).single().then((res) => {
+  console.log(res.data?.id);
+});
 
-  // Query a user with related posts
-  const userWithPosts = await supabase.from('User').select('*, Post(*)').limit(1).single();
-  console.log(userWithPosts.data?.Post[0].authorId);
-}
+supabase.from('User').select('*, Post(*)').limit(1).single().then((res) => {
+  console.log(res.data?.Post[0].content);
+});
+
 ```
 
-Or using PostgREST:
+Or using [PostgREST](https://postgrest.org/):
 
 ```typescript
 import { PostgrestClient } from "@supabase/postgrest-js";
-import { Database } from "./prisma/database";
+import { type Database } from "./prisma/database";
 
-const postgrest = new PostgrestClient<Database>('YOUR_POSTGREST_URL');
+// PostgREST Example
+const postgrest = new PostgrestClient<Database>('');
 
-async function postgrestExample() {
-  const user = await postgrest.from('User').select('*').limit(1).single();
-  console.log(user.data?.role);
+postgrest.from('User').select('*').limit(1).single().then((res) => {
+  console.log(res.data?.id);
+});
 
-  const userWithPosts = await postgrest.from('User').select('*, Post(*)').limit(1).single();
-  console.log(userWithPosts.data?.Post[0].authorId);
-}
+postgrest.from('User').select('*, Post(*)').limit(1).single().then((res) => {
+  console.log(res.data?.Post[0].content);
+});
+
 ```
 
 In these examples, the `Database` type is imported from the generated `database.ts` file, providing type safety for your Supabase or PostgREST queries based on your Prisma schema.
@@ -93,16 +106,16 @@ In these examples, the `Database` type is imported from the generated `database.
 - [x] Table Types
 - [x] Table Relationships
 - [x] Enum Types
-- [x] Composite Types
 - [x] JSDoc from Prisma schema comments
-- [ ] View Types (in progress)
+- [x] View Types (included within Table Types)
 - [ ] Multiple Schemas (in progress)
+- [ ] Composite Types (not supported by Prisma yet)
 - [ ] Function Types (not supported by Prisma yet)
 
 ## Benefits
 
-- Generate Supabase types from your Prisma schema without an online or dockerized database
-- Useful for projects that only use PostgREST
+- Generate [Supabase](https://supabase.com/) types from your [Prisma](https://www.prisma.io/) schema without an online or dockerized database
+- Useful for projects that only use [PostgREST](https://postgrest.org/)
 - Faster type generation process
 - Optional JSDoc comments for better code documentation
 
