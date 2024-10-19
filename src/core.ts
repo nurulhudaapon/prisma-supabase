@@ -119,11 +119,13 @@ function generateTablesDefinition(schemaTables: DMMF.Model[], schemaEnums: DMMF.
         ]
       }`
     )
-    .join(';\n');
+    .join(';');
 }
 
 function generateColEnumDocs(col: DMMF.Field, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
-  const enumModel = col.kind === 'enum' ? schemaEnums.find((e) => e.name === col.type) : null;
+  let enumModel = col.kind === 'enum' ? schemaEnums.find((e) => e.name === col.type) : null;
+  if (!enumModel) return '';
+  enumModel = {...enumModel, documentation: col.documentation };
   return enumModel ? generateEnumMemberDocs(enumModel, generatorConfig) : '';
 }
 
@@ -207,7 +209,7 @@ function generateTableRelationshipsDefinition(table: DMMF.Model, schemaEnums: DM
           }`;
       return relationshipDeclaration;
     })
-    .join(',\n');
+    .join(',');
 }
 
 /**
@@ -257,7 +259,7 @@ function generateEnumMemberDocs(enm: DMMF.DatamodelEnum, generatorConfig: Genera
       .map(
         (member) =>
           // @ts-expect-error: documentation is not typed
-          `\n@member **${member.name}**: ${member.documentation?.split('\n').join(' ')}`
+          `\n- ${member.name}: ${member.documentation?.split('\n').join(' ')}`
       ),
     generatorConfig,
     {
@@ -471,10 +473,12 @@ function renderDoc(
 ): string {
   if (!doc || generatorConfig.enableDocumentation === 'false') return '';
   const lines = Array.isArray(doc) ? doc.map((line) => line.trim()) : doc.split('\n').map((line) => line.trim());
+  if (lines.length === 0) return '';
+
   const startLine = options?.noStartingStar ? '' : '/**';
   const endLine = options?.noEndingStar ? '' : ' */';
 
-  if (lines.length === 1) return `${startLine} ${lines[0]} ${endLine}\n`;
+  if (lines.length === 1) return `${startLine} ${lines[0]}${endLine}\n`;
 
   const contentLines = lines.map((line) => ` * ${line}`);
 

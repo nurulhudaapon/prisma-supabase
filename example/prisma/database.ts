@@ -12,7 +12,7 @@ export type Database = {
 			 */
 			Post: {
 				Row: {
-					/** The user who wrote the post.  */
+					/** The user who wrote the post. */
 					authorId: string;
 					/**
 					 * The content of the post.
@@ -21,20 +21,20 @@ export type Database = {
 					 * paragraphs, headings, lists, and potentially embedded media.
 					 */
 					content: string | null;
-					/** The unique identifier for the post.  */
+					/** The unique identifier for the post. */
 					id: string;
-					/** Whether the post is published.  */
+					/** Whether the post is published. */
 					published: boolean;
 					/** The status of the post.
-					 * @member **DRAFT**: A draft post.
-					 * @member **PUBLISHED**: A published post
+					 * - DRAFT: A draft post.
+					 * - PUBLISHED: A published post
 					 */
 					status: Database['public']['Enums']['PostStatus'];
-					/** The title of the post.  */
+					/** The title of the post. */
 					title: string;
 				};
 				Insert: {
-					/** The user who wrote the post.  */
+					/** The user who wrote the post. */
 					authorId: string;
 					/**
 					 * The content of the post.
@@ -43,20 +43,20 @@ export type Database = {
 					 * paragraphs, headings, lists, and potentially embedded media.
 					 */
 					content?: string | null;
-					/** The unique identifier for the post.  */
+					/** The unique identifier for the post. */
 					id?: string;
-					/** Whether the post is published.  */
+					/** Whether the post is published. */
 					published?: boolean;
 					/** The status of the post.
-					 * @member **DRAFT**: A draft post.
-					 * @member **PUBLISHED**: A published post
+					 * - DRAFT: A draft post.
+					 * - PUBLISHED: A published post
 					 */
 					status?: Database['public']['Enums']['PostStatus'];
-					/** The title of the post.  */
+					/** The title of the post. */
 					title: string;
 				};
 				Update: {
-					/** The user who wrote the post.  */
+					/** The user who wrote the post. */
 					authorId?: string;
 					/**
 					 * The content of the post.
@@ -65,16 +65,16 @@ export type Database = {
 					 * paragraphs, headings, lists, and potentially embedded media.
 					 */
 					content?: string | null;
-					/** The unique identifier for the post.  */
+					/** The unique identifier for the post. */
 					id?: string;
-					/** Whether the post is published.  */
+					/** Whether the post is published. */
 					published?: boolean;
 					/** The status of the post.
-					 * @member **DRAFT**: A draft post.
-					 * @member **PUBLISHED**: A published post
+					 * - DRAFT: A draft post.
+					 * - PUBLISHED: A published post
 					 */
 					status?: Database['public']['Enums']['PostStatus'];
-					/** The title of the post.  */
+					/** The title of the post. */
 					title?: string;
 				};
 				Relationships: [
@@ -87,7 +87,6 @@ export type Database = {
 					},
 				];
 			};
-
 			/**
 			 * User
 			 *
@@ -98,7 +97,7 @@ export type Database = {
 			 */
 			User: {
 				Row: {
-					/** The user's email address.  */
+					/** The user's email address. */
 					email: string;
 					/**
 					 * The unique identifier for the user.
@@ -107,16 +106,16 @@ export type Database = {
 					 * establish relationships with other models, such as Post.
 					 */
 					id: string;
-					/** The user's name.  */
+					/** The user's name. */
 					name: string | null;
 					/** The user's role.
-					 * @member **USER**: A regular user.
-					 * @member **ADMIN**: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
+					 * - USER: A regular user.
+					 * - ADMIN: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
 					 */
 					role: Database['public']['Enums']['UserRole'];
 				};
 				Insert: {
-					/** The user's email address.  */
+					/** The user's email address. */
 					email: string;
 					/**
 					 * The unique identifier for the user.
@@ -125,16 +124,16 @@ export type Database = {
 					 * establish relationships with other models, such as Post.
 					 */
 					id?: string;
-					/** The user's name.  */
+					/** The user's name. */
 					name?: string | null;
 					/** The user's role.
-					 * @member **USER**: A regular user.
-					 * @member **ADMIN**: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
+					 * - USER: A regular user.
+					 * - ADMIN: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
 					 */
 					role?: Database['public']['Enums']['UserRole'];
 				};
 				Update: {
-					/** The user's email address.  */
+					/** The user's email address. */
 					email?: string;
 					/**
 					 * The unique identifier for the user.
@@ -143,11 +142,11 @@ export type Database = {
 					 * establish relationships with other models, such as Post.
 					 */
 					id?: string;
-					/** The user's name.  */
+					/** The user's name. */
 					name?: string | null;
 					/** The user's role.
-					 * @member **USER**: A regular user.
-					 * @member **ADMIN**: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
+					 * - USER: A regular user.
+					 * - ADMIN: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
 					 */
 					role?: Database['public']['Enums']['UserRole'];
 				};
@@ -166,8 +165,8 @@ export type Database = {
 			 *
 			 * This enum defines the possible statuses a post can have in the system.
 			 * It is used to determine the publication status of a post.
-			 * @member **DRAFT**: A draft post.
-			 * @member **PUBLISHED**: A published post
+			 * - DRAFT: A draft post.
+			 * - PUBLISHED: A published post
 			 */
 			PostStatus: 'DRAFT' | 'PUBLISHED';
 			/**
@@ -175,8 +174,8 @@ export type Database = {
 			 *
 			 * This enum defines the possible roles a user can have in the system.
 			 * It is used to determine the level of access and permissions for each user.
-			 * @member **USER**: A regular user.
-			 * @member **ADMIN**: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
+			 * - USER: A regular user.
+			 * - ADMIN: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
 			 */
 			UserRole: 'USER' | 'ADMIN';
 		};
