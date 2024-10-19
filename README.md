@@ -59,7 +59,7 @@ This will generate a `database.ts` file (or whatever you specified in the `outpu
 - `output`: Specifies the output file for the generated types. Defaults to `./prisma/database.ts`.
 - `enableDocumentation`: Enables or disables the generation of JSDoc comments from Prisma schema comments. Defaults to `true`.
 
-## Example
+## Example Usage
 
 Here's an example of how to use the generated types with Supabase:
 
@@ -100,6 +100,11 @@ postgrest.from('User').select('*, Post(*)').limit(1).single().then((res) => {
 ```
 
 In these examples, the `Database` type is imported from the generated `database.ts` file, providing type safety for your Supabase or PostgREST queries based on your Prisma schema.
+
+## Example Output
+**Schema**: [example/prisma/schema.prisma](./example/prisma/schema.prisma)
+
+**Output**: [example/prisma/database.ts](./example/prisma/database.ts)
 
 ## Features
 

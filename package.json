@@ -1,6 +1,6 @@
 {
   "name": "prisma-supabase",
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.4",
   "main": "dist/generator.js",
   "scripts": {
     "build": "npx tsc ./src/* --outDir dist",
@@ -12,7 +12,7 @@
     "dist",
     "assets"
   ],
-  "description": "Supabase types generator from Prisma schema",
+  "description": "Prisma generator for creating types for supabase-js/postgrest-js, without requiring a database, for faster generation times. Ideal for PostgREST-only projects.",
   "author": {
     "name": "Nurul Huda (Apon)",
     "email": "me@nurulhudaapon.com"

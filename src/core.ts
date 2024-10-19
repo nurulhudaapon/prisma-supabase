@@ -76,7 +76,7 @@ function generateSchemaDefinition(schema: SchemaObject, generatorConfig: Generat
   return `
   ${schema.name}: {
     Tables: {
-      ${generateTablesDefinition(schemaTables, generatorConfig)}
+      ${generateTablesDefinition(schemaTables, schemaEnums, generatorConfig)}
     }
     Views: {
       ${generateViewsDefinition()}
@@ -98,7 +98,7 @@ function generateSchemaDefinition(schema: SchemaObject, generatorConfig: Generat
  * @param schemaTables An array of DMMF Model objects representing tables
  * @returns A string containing the tables definition
  */
-function generateTablesDefinition(schemaTables: DMMF.Model[], generatorConfig: GeneratorConfig): string {
+function generateTablesDefinition(schemaTables: DMMF.Model[], schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
   if (!schemaTables.length) return '[_ in never]: never';
 
   return schemaTables
@@ -106,20 +106,25 @@ function generateTablesDefinition(schemaTables: DMMF.Model[], generatorConfig: G
       (table) => `
       ${renderDoc(table.documentation, generatorConfig)}${table.name}: {
         Row: {
-          ${generateTableRowDefinition(table, generatorConfig)}
+          ${generateTableRowDefinition(table, schemaEnums, generatorConfig)}
         }
         Insert: {
-          ${generateTableInsertDefinition(table, generatorConfig)}
+          ${generateTableInsertDefinition(table, schemaEnums, generatorConfig)}
         }
         Update: {
-          ${generateTableUpdateDefinition(table, generatorConfig)}
+          ${generateTableUpdateDefinition(table, schemaEnums, generatorConfig)}
         }
         Relationships: [
-          ${generateTableRelationshipsDefinition(table, generatorConfig)}
+          ${generateTableRelationshipsDefinition(table, schemaEnums, generatorConfig)}
         ]
       }`
     )
     .join(';\n');
+}
+
+function generateColEnumDocs(col: DMMF.Field, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
+  const enumModel = col.kind === 'enum' ? schemaEnums.find((e) => e.name === col.type) : null;
+  return enumModel ? generateEnumMemberDocs(enumModel, generatorConfig) : '';
 }
 
 /**
@@ -127,14 +132,15 @@ function generateTablesDefinition(schemaTables: DMMF.Model[], generatorConfig: G
  * @param table The DMMF Model object representing a table
  * @returns A string containing the row definition
  */
-function generateTableRowDefinition(table: DMMF.Model, generatorConfig: GeneratorConfig): string {
+function generateTableRowDefinition(table: DMMF.Model, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
   return table.fields
     .filter(filterField)
     .sort(alphaSort)
     .map((col) => {
       const type = `${prismaTypeToTsType(col)}${col.isRequired ? '' : ' | null'}`;
-      const typeDeclaration = `${col.name}: ${type}`;
-      return renderDoc(col.documentation, generatorConfig) + typeDeclaration;
+      const enumDoc = generateColEnumDocs(col, schemaEnums, generatorConfig);
+      const colDoc = renderDoc(col.documentation, generatorConfig, { noEndingStar: !!enumDoc });
+      return colDoc + enumDoc + `${col.name}: ${type}`;
     })
     .join('\n');
 }
@@ -144,7 +150,7 @@ function generateTableRowDefinition(table: DMMF.Model, generatorConfig: Generato
  * @param table The DMMF Model object representing a table
  * @returns A string containing the insert definition
  */
-function generateTableInsertDefinition(table: DMMF.Model, generatorConfig: GeneratorConfig): string {
+function generateTableInsertDefinition(table: DMMF.Model, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
   return table.fields
     .filter(filterField)
     .sort(alphaSort)
@@ -152,11 +158,11 @@ function generateTableInsertDefinition(table: DMMF.Model, generatorConfig: Gener
       const type = `${prismaTypeToTsType(col)}${col.isRequired ? '' : ' | null'}`;
       const isOptional = !col.isRequired || col.hasDefaultValue;
       const fieldName = `${col.name}${isOptional ? '?' : ''}`;
-
       if (col.isGenerated) return `${fieldName}: never`;
 
-      const typeDeclaration = `${fieldName}: ${type}`;
-      return renderDoc(col.documentation, generatorConfig) + typeDeclaration;
+      const enumDoc = generateColEnumDocs(col, schemaEnums, generatorConfig);
+      const colDoc = renderDoc(col.documentation, generatorConfig, { noEndingStar: !!enumDoc });
+      return colDoc + enumDoc + `${fieldName}: ${type}`;
     })
     .join('\n');
 }
@@ -166,7 +172,7 @@ function generateTableInsertDefinition(table: DMMF.Model, generatorConfig: Gener
  * @param table The DMMF Model object representing a table
  * @returns A string containing the update definition
  */
-function generateTableUpdateDefinition(table: DMMF.Model, generatorConfig: GeneratorConfig): string {
+function generateTableUpdateDefinition(table: DMMF.Model, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
   return table.fields
     .filter(filterField)
     .sort(alphaSort)
@@ -174,8 +180,9 @@ function generateTableUpdateDefinition(table: DMMF.Model, generatorConfig: Gener
       if (col.isGenerated) return `${col.name}?: never`;
 
       const type = `${prismaTypeToTsType(col)}${!col.isRequired ? ' | null' : ''}`;
-      const typeDeclaration = ` ${col.name}?: ${type}`;
-      return renderDoc(col.documentation, generatorConfig) + typeDeclaration;
+      const enumDoc = generateColEnumDocs(col, schemaEnums, generatorConfig);
+      const colDoc = renderDoc(col.documentation, generatorConfig, { noEndingStar: !!enumDoc });
+      return colDoc + enumDoc + `${col.name}?: ${type}`;
     })
     .join('\n');
 }
@@ -185,7 +192,7 @@ function generateTableUpdateDefinition(table: DMMF.Model, generatorConfig: Gener
  * @param table The DMMF Model object representing a table
  * @returns A string containing the relationships definition
  */
-function generateTableRelationshipsDefinition(table: DMMF.Model, generatorConfig: GeneratorConfig): string {
+function generateTableRelationshipsDefinition(table: DMMF.Model, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
   return table.fields
     .filter((field) => field.relationName && field?.relationFromFields?.length && field?.relationToFields?.length)
     .sort(alphaSort)
@@ -230,20 +237,7 @@ function generateEnumsDefinition(schemaEnums: DMMF.DatamodelEnum[], generatorCon
   return schemaEnums
     .map((enm) => {
       const enumRootDoc = renderDoc(enm.documentation, generatorConfig, { noEndingStar: true });
-      const enumMemberDocs = renderDoc(
-        enm.values
-              // @ts-expect-error: documentation is not typed
-          .filter((member) => !!member?.documentation?.trim())
-          .map(
-            (member) =>
-              // @ts-expect-error: documentation is not typed
-              `\n@member **${member.name}**: ${member.documentation?.split('\n').join(' ')}`
-          ),
-        generatorConfig,
-        {
-          noStartingStar: !!enm.documentation,
-        }
-      );
+      const enumMemberDocs = generateEnumMemberDocs(enm, generatorConfig);
 
       // @ts-expect-error: documentation is not typed
       const hasMemberDocs = enm.values.some((member) => !!member?.documentation?.trim());
@@ -253,6 +247,23 @@ function generateEnumsDefinition(schemaEnums: DMMF.DatamodelEnum[], generatorCon
       return `${finalEnumDoc}${enm.name}: ${enm.values.map((member) => `"${member.name}"`).join(' | ')}`;
     })
     .join('\n');
+}
+
+function generateEnumMemberDocs(enm: DMMF.DatamodelEnum, generatorConfig: GeneratorConfig): string {
+  return renderDoc(
+    enm.values
+      // @ts-expect-error: documentation is not typed
+      .filter((member) => !!member?.documentation?.trim())
+      .map(
+        (member) =>
+          // @ts-expect-error: documentation is not typed
+          `\n@member **${member.name}**: ${member.documentation?.split('\n').join(' ')}`
+      ),
+    generatorConfig,
+    {
+      noStartingStar: !!enm.documentation,
+    }
+  );
 }
 
 /**
@@ -460,12 +471,12 @@ function renderDoc(
 ): string {
   if (!doc || generatorConfig.enableDocumentation === 'false') return '';
   const lines = Array.isArray(doc) ? doc.map((line) => line.trim()) : doc.split('\n').map((line) => line.trim());
-
-  if (lines.length === 1) return `/** ${lines[0]} */\n`;
-
   const startLine = options?.noStartingStar ? '' : '/**';
-  const contentLines = lines.map((line) => ` * ${line}`);
   const endLine = options?.noEndingStar ? '' : ' */';
+
+  if (lines.length === 1) return `${startLine} ${lines[0]} ${endLine}\n`;
+
+  const contentLines = lines.map((line) => ` * ${line}`);
 
   return [startLine, ...contentLines, endLine, ''].filter(Boolean).join('\n') + '\n';
 }
