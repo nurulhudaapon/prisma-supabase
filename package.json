@@ -1,11 +1,11 @@
 {
   "name": "prisma-generator-supabase",
-  "version": "0.0.1-alpha.3",
-  "main": "dist/cli.mjs",
+  "version": "0.0.1-alpha.9",
+  "main": "dist/generator.js",
   "scripts": {
-    "build": "bun build src/* --outdir dist/ --target node",
-    "compile": "bun build src/cli.ts --outfile dist/cli.mjs --target node",
-    "watch": "bun --watch build src/* --outdir dist/ --target node"
+    "build": "npx tsc ./src/* --outDir dist",
+    "watch": "npx tsc ./src/* --outDir dist --watch",
+    "clean": "rm -rf dist **/**/node_modules node_modules tmp"
   },
   "license": "MIT",
   "files": [
@@ -32,9 +32,11 @@
     "url": "https://github.com/nurulhudaapon/prisma-generator-supabase/issues"
   },
   "devDependencies": {
-    "@prisma/generator-helper": "^5.21.1"
+    "@prisma/generator-helper": "^5.21.1",
+    "@types/node": "^22.7.7",
+    "typescript": "^5.6.3"
   },
   "bin": {
-    "prisma-generator-supabase": "dist/cli.mjs"
+    "prisma-generator-supabase": "dist/cli.js"
   }
 }

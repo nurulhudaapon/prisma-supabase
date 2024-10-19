@@ -1,4 +1,4 @@
 #!/usr/bin/env node
 
-export * from './generator';
+import './generator';
 
