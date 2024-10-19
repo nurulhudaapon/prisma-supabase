@@ -1,6 +1,6 @@
-import { generateTypes } from "@prisma-generator-supabase/core";
 import { generatorHandler } from "@prisma/generator-helper";
 import * as fs from "fs/promises";
+import { generateTypes } from "./core";
 
 generatorHandler({
   onManifest() {

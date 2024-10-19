@@ -1,0 +1,46 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator supabase {
+  provider = "prisma-generator-supabase"
+}
+
+/// User
+model User {
+  /// The unique identifier for the user.
+  id    String   @id @default(uuid()) @db.Uuid
+  /// The user's email address.
+  email String   @unique
+  /// The user's name.
+  name  String?
+  /// The user's role.
+  role  UserRole @default(USER)
+  /// The user's posts.
+  posts Post[]
+}
+
+/// Post
+model Post {
+  /// The unique identifier for the post.
+  id        String  @id @default(uuid()) @db.Uuid
+  /// The title of the post.
+  title     String
+  /// The content of the post.
+  content   String?
+  /// Whether the post is published.
+  published Boolean @default(false)
+  /// The user who wrote the post.
+  authorId  String  @db.Uuid
+  /// The user who wrote the post.
+  author    User    @relation(fields: [authorId], references: [id])
+}
+
+/// User role
+enum UserRole {
+  /// A regular user.
+  USER
+  /// An administrator.
+  ADMIN
+}

@@ -1,20 +1,40 @@
 {
   "name": "prisma-generator-supabase",
-  "module": "index.ts",
-  "type": "module",
-  "bin": {
-    "prisma-generator-supabase": "dist/generator.js"
+  "version": "0.0.1-alpha.3",
+  "main": "dist/cli.mjs",
+  "scripts": {
+    "build": "bun build src/* --outdir dist/ --target node",
+    "compile": "bun build src/cli.ts --outfile dist/cli.mjs --target node",
+    "watch": "bun --watch build src/* --outdir dist/ --target node"
   },
-  "workspaces": [
-    "packages/*"
+  "license": "MIT",
+  "files": [
+    "dist"
   ],
-  "dependencies": {
-    "@prisma/generator-helper": "^5.21.1"
+  "description": "Supabase types generator from Prisma schema",
+  "author": {
+    "name": "Nurul Huda (Apon)",
+    "email": "me@nurulhudaapon.com"
+  },
+  "keywords": [
+    "prisma",
+    "prisma-generator",
+    "supabase",
+    "code-generation",
+    "typescript"
+  ],
+  "homepage": "https://github.com/nurulhudaapon/prisma-generator-supabase",
+  "repository": {
+    "url": "https://github.com/nurulhudaapon/prisma-generator-supabase.git"
+  },
+  "bugs": {
+    "email": "bugs@nurulhudaapon.com",
+    "url": "https://github.com/nurulhudaapon/prisma-generator-supabase/issues"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@prisma/generator-helper": "^5.21.1"
   },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+  "bin": {
+    "prisma-generator-supabase": "dist/cli.mjs"
   }
 }
