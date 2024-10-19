@@ -1,5 +1,5 @@
 import { PostgrestClient } from "@supabase/postgrest-js";
-import { Database } from "./prisma/database";
+import { type Database } from "./prisma/database";
 
 // PostgREST Example
 const postgrest = new PostgrestClient<Database>('');

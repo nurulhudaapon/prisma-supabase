@@ -5,43 +5,75 @@ datasource db {
 
 generator supabase {
   provider = "prisma-supabase" 
-  output   = "prisma/database.ts" // Optional: Defaults to ./prisma/database.ts
+  output   = "database.ts" // Optional: Defaults to ./prisma/database.ts
+  enableDocumentation = true // Optional: Defaults to true
 }
 
 /// User
+///
+/// This model represents a user in the system.
+/// It stores essential information about each user, including their unique identifier,
+/// email address, name, role, and associated posts.
+/// Users can have multiple posts and are assigned a specific role (USER or ADMIN).
 model User {
   /// The unique identifier for the user.
+  /// This UUID is automatically generated when a new user is created.
+  /// It serves as the primary key for the User model and is used to
+  /// establish relationships with other models, such as Post.
   id    String   @id @default(uuid()) @db.Uuid
+
   /// The user's email address.
   email String   @unique
+
   /// The user's name.
   name  String?
+
   /// The user's role.
   role  UserRole @default(USER)
+
   /// The user's posts.
   posts Post[]
 }
 
 /// Post
+///
+/// This model represents a blog post or article in the system.
+/// It contains information about each post, including its unique identifier,
+/// title, content, publication status, and the author who wrote it.
 model Post {
   /// The unique identifier for the post.
   id        String  @id @default(uuid()) @db.Uuid
+
   /// The title of the post.
   title     String
+
   /// The content of the post.
+  /// This optional field contains the main body or text of the blog post.
+  /// It can store formatted text, allowing for rich content including
+  /// paragraphs, headings, lists, and potentially embedded media.
   content   String?
+
   /// Whether the post is published.
   published Boolean @default(false)
+
   /// The user who wrote the post.
   authorId  String  @db.Uuid
+
   /// The user who wrote the post.
   author    User    @relation(fields: [authorId], references: [id])
 }
 
 /// User role
+///
+/// This enum defines the possible roles a user can have in the system.
+/// It is used to determine the level of access and permissions for each user.
 enum UserRole {
   /// A regular user.
   USER
+
   /// An administrator.
+  /// Users with this role have elevated privileges within the application.
+  /// Administrators can typically access all features, manage other users,
+  /// and perform system-wide operations that are not available to regular users.
   ADMIN
 }

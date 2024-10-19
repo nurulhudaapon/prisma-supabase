@@ -4,17 +4,19 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "watch": "prisma generate --watch",
+    "clean": "rm -rf node_modules && rm -rf package-lock.json"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "prisma": "^5.21.1"
+    "prisma": "^5.21.1",
+    "prisma-supabase": "file:.."
   },
   "dependencies": {
     "@prisma/client": "^5.21.1",
-    "@supabase/supabase-js": "^2.45.5",
-    "prisma-supabase": "file:.."
+    "@supabase/supabase-js": "^2.45.5"
   }
 }

@@ -30,7 +30,8 @@ bun add -D prisma-supabase
 ```prisma
 generator supabase {
   provider = "prisma-supabase"
-  output   = "./prisma/database.ts" // Optional: Defaults to ./prisma/database.ts
+  output   = "./database.ts" // Optional: Defaults to ./database.ts which would store in ./prisma/database.ts
+  enableDocumentation = true // Optional: Defaults to true
 }
 ```
 
@@ -41,6 +42,11 @@ npx prisma generate
 ```
 
 This will generate a `database.ts` file (or whatever you specified in the `output` option) in your Prisma output directory (usually `prisma/`).
+
+### Configuration Options
+
+- `output`: Specifies the output file for the generated types. Defaults to `./prisma/database.ts`.
+- `enableDocumentation`: Enables or disables the generation of JSDoc comments from Prisma schema comments. Defaults to `true`.
 
 ## Example
 
@@ -88,7 +94,7 @@ In these examples, the `Database` type is imported from the generated `database.
 - [x] Table Relationships
 - [x] Enum Types
 - [x] Composite Types
-- [ ] JSDoc from Prisma schema comments (in progress)
+- [x] JSDoc from Prisma schema comments
 - [ ] View Types (in progress)
 - [ ] Multiple Schemas (in progress)
 - [ ] Function Types (not supported by Prisma yet)
@@ -98,6 +104,7 @@ In these examples, the `Database` type is imported from the generated `database.
 - Generate Supabase types from your Prisma schema without an online or dockerized database
 - Useful for projects that only use PostgREST
 - Faster type generation process
+- Optional JSDoc comments for better code documentation
 
 ## Requirements
 

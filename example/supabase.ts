@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { Database } from "./prisma/database";
+import { type Database } from "./prisma/database";
 
 // Supabase Example
 const supabase = createClient<Database>('', '');
