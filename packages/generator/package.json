@@ -1,5 +1,9 @@
 {
   "name": "@prisma-generator-supabase/generator",
   "module": "index.ts",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./index.ts --outfile ../../dist/generator.js --target node",
+    "watch": "bun --watch build ./index.ts --outfile ../../dist/generator.js --target node"
+  }
 }
