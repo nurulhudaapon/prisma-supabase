@@ -6,10 +6,10 @@ export function generateTypes(dmmf: DMMF.Document) {
   const schemas = [
     {
       compositeTypes: datamodel.types,
-      enums: datamodel.enums,
+      enums: datamodel.enums.map(stringifyName),
       functions: [],
       name: "public",
-      tables: datamodel.models,
+      tables: datamodel.models.map(stringifyName),
       views: [],
     },
   ];
@@ -21,99 +21,73 @@ export type Database = {
   ${schemas
     .sort(({ name: a }, { name: b }) => a.localeCompare(b))
     .map((schema) => {
-      const schemaTables = [...schema.tables].sort(({ name: a }, { name: b }) =>
-        a.localeCompare(b)
-      );
+      const schemaTables = [...schema.tables].sort(alphaSort);
       const schemaEnums = schema.enums
         .filter((type) => type.values.length > 0)
-        .sort(({ name: a }, { name: b }) => a.localeCompare(b));
+        .sort(alphaSort);
       const schemaCompositeTypes = schema.compositeTypes
         .filter((type) => type.fields.length > 0)
-        .sort(({ name: a }, { name: b }) => a.localeCompare(b));
+        .sort(alphaSort);
 
       return `${JSON.stringify(schema.name)}: {
           Tables: {
             ${
-              schemaTables.length === 0
+              !schemaTables.length
                 ? "[_ in never]: never"
                 : schemaTables.map(
-                    (table) => `${JSON.stringify(table.name)}: {
+                    (table) => `${table.name}: {
                   Row: {
-                    ${[
-                      ...table.fields
-                        .filter((field) => !field.relationName)
-                        .map(
-                          (column) =>
-                            `${JSON.stringify(
-                              column.name
-                            )}: ${prismaTypeToTsType(column)} ${
-                              !column.isRequired ? "| null" : ""
-                            }`
-                        ),
-                    ]}
+                    ${table.fields
+                      .filter(filterField)
+                      .sort(alphaSort)
+                      .map(
+                        (col) =>
+                          `${col.name}: ${prismaTypeToTsType(col)} ${col.isRequired ? "" : "| null"}`
+                      )}
                   }
                   Insert: {
                     ${table.fields
-                      .filter((field) => !field.relationName)
-                      .map((column) => {
-                        let output = JSON.stringify(column.name);
+                      .filter(filterField)
+                      .sort(alphaSort)
+                      .map((col) => {
+                        let output = col.name;
+                        if (col.isGenerated) return `${output}?: never`;
 
-                        if (column.isGenerated) {
-                          return `${output}?: never`;
-                        }
-
-                        if (
-                          !column.isRequired ||
-                          column.isId ||
-                          column.default !== null
-                        ) {
+                        if (!col.isRequired || col.hasDefaultValue)
                           output += "?:";
-                        } else {
-                          output += ":";
-                        }
+                        else output += ":";
 
-                        output += prismaTypeToTsType(column);
+                        output += `${prismaTypeToTsType(col)} ${col.isRequired ? "" : "| null"}`
 
                         return output;
                       })}
                   }
                   Update: {
                     ${table.fields
-                      .filter((field) => !field.relationName)
-                      .map((column) => {
-                        let output = JSON.stringify(column.name);
+                      .filter(filterField)
+                      .sort(alphaSort)
+                      .map((col) => {
+                        let output = col.name;
+                        if (col.isGenerated) return `${output}?: never`;
 
-                        if (column.isGenerated) {
-                          return `${output}?: never`;
-                        }
+                        output += `?: ${prismaTypeToTsType(col)}`;
 
-                        output += `?: ${prismaTypeToTsType(column)}`;
-
-                        if (!column.isRequired) {
-                          output += "| null";
-                        }
+                        if (!col.isRequired) output += "| null";
 
                         return output;
                       })}
                   }
                   Relationships: [
                     ${table.fields
-                      .filter((field) => field.relationName)
-                      .sort(
-                        (a, b) =>
-                          a.name.localeCompare(b.name) ||
-                          a.relationName!.localeCompare(b.relationName!)
-                      )
+                      .filter((field) => field.relationName && field?.relationFromFields?.length && field?.relationToFields?.length)
+                      .sort(alphaSort)
                       .map(
                         (relationship) => `{
                               foreignKeyName: ${JSON.stringify(relationship.relationName)}
-                              columns: ${JSON.stringify(relationship.relationToFields)}
-                              ${
-                                relationship.isList
-                                  ? `isOneToOne: ${relationship.isList};`
-                                  : ""
-                              }referencedRelation: ${JSON.stringify(relationship.name)}
-                              referencedColumns: ${JSON.stringify(relationship.relationFromFields)}
+                              columns: ${JSON.stringify(relationship.relationFromFields)}
+                              isOneToOne: ${relationship.isList};
+                              referencedRelation: ${JSON.stringify(relationship.type)}
+                              referencedColumns: ${JSON.stringify(relationship.relationToFields)}
                             }`
                       )}
                   ]
@@ -123,7 +97,7 @@ export type Database = {
           }
           Views: {
             ${
-              "/* No Support for Views */"
+              "/* No support for views */"
               //   schemaViews.length === 0
               //     ? '[_ in never]: never'
               //     : schemaViews.map(
@@ -198,15 +172,15 @@ export type Database = {
             }
           }
           Functions: {
-            ${"/* No Support for Functions */"}
+            ${"/* No support for functions */"}
           }
           Enums: {
             ${
-              schemaEnums.length === 0
+              !schemaEnums.length
                 ? "[_ in never]: never"
                 : schemaEnums.map(
                     (enum_) =>
-                      `${JSON.stringify(enum_.name)}: ${enum_.values
+                      `${enum_.name}: ${enum_.values
                         .map((variant) => JSON.stringify(variant.name))
                         .join("|")}`
                   )
@@ -214,17 +188,16 @@ export type Database = {
           }
           CompositeTypes: {
             ${
-              schemaCompositeTypes.length === 0
+              !schemaCompositeTypes.length
                 ? "[_ in never]: never"
                 : schemaCompositeTypes.map(
                     ({ name, fields }) =>
-                      `${JSON.stringify(name)}: {
-                        ${fields.map(({ name, type }) => {
+                      `${name}: {
+                        ${fields.map((field) => {
                           let tsType = "unknown";
-                          if (type) {
-                            tsType = `${prismaTypeToTsType(type)} | null`;
-                          }
-                          return `${JSON.stringify(name)}: ${tsType}`;
+                          if (field.type)
+                            tsType = `${prismaTypeToTsType(field)} | null`;
+                          return `${field.name}: ${tsType}`;
                         })}
                       }`
                   )
@@ -332,27 +305,42 @@ export type CompositeTypes<
 }
 
 function prismaTypeToTsType(field: DMMF.Field) {
-    if (field.kind === "scalar") {
-      return PRISMA_TO_TS_TYPE[field.type as keyof typeof PRISMA_TO_TS_TYPE];
-    }
-
-    if (field.kind === "enum") {
-      return `Database['public']['Enums']['${field.type}']`
-    }
-  
-    return field.type;
+  if (field.kind === "scalar") {
+    return PRISMA_TO_TS_TYPE[field.type as keyof typeof PRISMA_TO_TS_TYPE];
   }
 
-  
+  if (field.kind === "enum") {
+    return `Database['public']['Enums']['${field.type}']`;
+  }
+
+  return field.type;
+}
+
 // BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String
 const PRISMA_TO_TS_TYPE = {
   BigInt: "number",
   Boolean: "boolean",
   Bytes: "string",
-  DateTime: "Date",
+  //   DateTime: "Date",
+  DateTime: "string",
   Decimal: "number",
   Float: "number",
   Int: "number",
-  JSON: "JSON",
+  Json: "Json",
   String: "string",
 } as const;
+
+function alphaSort(a: { name: string }, b: { name: string }) {
+  return a.name.localeCompare(b.name);
+}
+
+function filterField(field: DMMF.Field) {
+  return !field.relationName;
+}
+
+function stringifyName<T extends { name: string }>(entity: T): T {
+  return {
+    ...entity,
+    name: JSON.stringify(entity.name),
+  };
+}
