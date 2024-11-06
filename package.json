@@ -1,6 +1,6 @@
 {
   "name": "prisma-supabase",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/generator.js",
   "scripts": {
     "build": "npx tsc ./src/* --outDir dist",
