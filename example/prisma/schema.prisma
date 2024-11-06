@@ -4,9 +4,10 @@ datasource db {
 }
 
 generator supabase {
-  provider = "prisma-supabase" 
-  output   = "database.ts" // Optional: Defaults to ./prisma/database.ts
+  provider            = "node ../dist/cli.js"
+  output              = "database.ts" // Optional: Defaults to ./prisma/database.ts
   enableDocumentation = true // Optional: Defaults to true
+  previewFeatures     = ["views"]
 }
 
 /// User
@@ -20,16 +21,16 @@ model User {
   /// This UUID is automatically generated when a new user is created.
   /// It serves as the primary key for the User model and is used to
   /// establish relationships with other models, such as Post.
-  id    String   @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
   /// The user's email address.
-  email String   @unique
+  email String @unique
 
   /// The user's name.
-  name  String?
+  name String?
 
   /// The user's role.
-  role  UserRole @default(USER)
+  role UserRole @default(USER)
 
   /// The user's posts.
   posts Post[]
@@ -42,28 +43,46 @@ model User {
 /// title, content, publication status, and the author who wrote it.
 model Post {
   /// The unique identifier for the post.
-  id        String  @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
   /// The title of the post.
-  title     String
+  title String
 
   /// The content of the post.
   /// This optional field contains the main body or text of the blog post.
   /// It can store formatted text, allowing for rich content including
   /// paragraphs, headings, lists, and potentially embedded media.
-  content   String?
+  content String?
 
   /// Whether the post is published.
   published Boolean @default(false)
 
   /// The user who wrote the post.
-  authorId  String  @db.Uuid
+  authorId String @db.Uuid
 
   /// The status of the post.
-  status   PostStatus @default(DRAFT)
+  status PostStatus @default(DRAFT)
 
   /// The user who wrote the post.
-  author    User    @relation(fields: [authorId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+}
+
+/// User View
+///
+/// This view contains the user's role.
+view UserView {
+  id   String   @id @default(uuid()) @db.Uuid
+  role UserRole
+  
+  // TEST ENUMS
+  noDoc NoDoc
+  memberOnlyDoc MemberOnlyDoc
+  parentOnlyDoc ParentOnlyDoc
+  mixedDoc MixedDoc
+  markdownDoc MarkdownDoc
+  specialContentDoc SpecialContentDoc
+  /// Make sure this gets added too
+  emptyVariations EmptyVariations
 }
 
 /// User role
@@ -90,4 +109,118 @@ enum PostStatus {
   DRAFT
   /// A published post
   PUBLISHED
+}
+
+// Test Cases
+
+/// No documentation at all
+enum NoDoc {
+  VALUE_1
+  VALUE_2
+}
+
+enum MemberOnlyDoc {
+  /// Value 1 description
+  VALUE_1
+  /// Value 2 description
+  VALUE_2
+}
+
+/// Parent only documentation
+/// This enum demonstrates documentation only at the enum level
+enum ParentOnlyDoc {
+  VALUE_1
+  VALUE_2
+}
+
+/// Mixed documentation patterns
+/// Tests various documentation combinations
+enum MixedDoc {
+  /// Documented value
+  VALUE_1
+  // Regular comment (not doc comment)
+  VALUE_2
+  VALUE_3 // Inline comment
+  /// Doc with inline // comment
+  VALUE_4 // With extra comment
+}
+
+/// Documentation with markdown formatting
+/// Demonstrates **bold**, *italic*, and `code`
+/// - First point
+/// - Second point
+/// # Heading 1
+/// ## Heading 2
+enum MarkdownDoc {
+  /// List item:
+
+  LIST_ITEM
+
+  /// # Heading 1
+  /// ## Heading 2
+  /// > Blockquote
+  FORMATTED_TEXT
+}
+
+/// Documentation with special content
+enum SpecialContentDoc {
+  /// Contains URLs: https://example.com
+  /// And email: test@example.com
+  WITH_LINKS
+
+  /// Contains *special* characters:
+  /// @#$%^&*()_+ and émojis 🎉 ⭐️
+  SPECIAL_CHARS
+
+  /// ```typescript
+  /// const code = 'example';
+  /// ```
+  WITH_CODE_BLOCK
+
+  /// Contains "quotes" and 'apostrophes'
+  /// And line breaks
+  /// And    multiple     spaces
+  WITH_FORMATTING
+}
+
+/// Empty variations
+enum EmptyVariations {
+  ///
+  EMPTY_DOC
+
+  /// 
+  /// 
+  MULTI_EMPTY_DOC
+
+  ALT_DOC_STYLE
+
+  // Regular comment
+  REGULAR_COMMENT
+}
+
+/// Mixed length documentation
+enum MixedLengthDoc {
+  /// Short
+  SHORT
+
+  /// This is a much longer documentation string that extends beyond
+  /// the typical length of a documentation comment and includes
+  /// multiple lines of detailed description about the enum value
+  LONG
+
+  /// Medium length
+  /// With two lines
+  MEDIUM
+}
+
+/// Demonstrates documentation with various indentation
+enum IndentationDoc {
+  /// Indented documentation
+  /// Also indented
+  /// More indentation
+  INDENTED_VALUE
+
+  /// Non-indented doc
+  /// For comparison
+  NORMAL_VALUE
 }

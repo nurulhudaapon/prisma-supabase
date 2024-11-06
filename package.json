@@ -9,8 +9,7 @@
   },
   "license": "MIT",
   "files": [
-    "dist",
-    "assets"
+    "dist"
   ],
   "description": "Prisma generator for creating types for supabase-js/postgrest-js, without requiring a database, for faster generation times. Ideal for PostgREST-only projects.",
   "author": {

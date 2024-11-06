@@ -2,8 +2,9 @@
 
 A Prisma generator that creates types for the [@supabase/supabase-js](https://github.com/supabase/supabase-js) or [@supabase/postgrest-js](https://github.com/supabase/postgrest-js) client without the need for an online or dockerized database, resulting in faster generation times. This is particularly useful for projects that only use PostgREST.
 
-<!-- Attach Image from Assets -->
-![Prisma Supabase Generator](./assets/prisma-supabase-demo-1.gif)
+## Demonstration
+
+![Demo GIF](https://raw.githubusercontent.com/nurulhudaapon/prisma-supabase/main/assets/prisma-supabase-demo-1.gif)
 
 ## Installation
 

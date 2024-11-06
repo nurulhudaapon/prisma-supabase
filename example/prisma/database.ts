@@ -152,14 +152,224 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			/**
+			 * User View
+			 *
+			 * This view contains the user's role.
+			 */
+			UserView: {
+				Row: {
+					/** Make sure this gets added too
+					 * - EMPTY_DOC
+					 * - MULTI_EMPTY_DOC
+					 * - ALT_DOC_STYLE
+					 * - REGULAR_COMMENT
+					 */
+					emptyVariations: Database['public']['Enums']['EmptyVariations'];
+					id: string;
+					/**
+					 * - LIST_ITEM: List item:
+					 * - FORMATTED_TEXT: # Heading 1 ## Heading 2 > Blockquote
+					 */
+					markdownDoc: Database['public']['Enums']['MarkdownDoc'];
+					/**
+					 * - VALUE_1: Value 1 description
+					 * - VALUE_2: Value 2 description
+					 */
+					memberOnlyDoc: Database['public']['Enums']['MemberOnlyDoc'];
+					/**
+					 * - VALUE_1: Documented value
+					 * - VALUE_2
+					 * - VALUE_3
+					 * - VALUE_4: Doc with inline // comment
+					 */
+					mixedDoc: Database['public']['Enums']['MixedDoc'];
+					/**
+					 * - VALUE_1
+					 * - VALUE_2
+					 */
+					noDoc: Database['public']['Enums']['NoDoc'];
+					/**
+					 * - VALUE_1
+					 * - VALUE_2
+					 */
+					parentOnlyDoc: Database['public']['Enums']['ParentOnlyDoc'];
+					/**
+					 * - USER: A regular user.
+					 * - ADMIN: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
+					 */
+					role: Database['public']['Enums']['UserRole'];
+					/**
+					 * - WITH_LINKS: Contains URLs: https://example.com And email: test@example.com
+					 * - SPECIAL_CHARS: Contains *special* characters: @#$%^&*()_+ and émojis 🎉 ⭐️
+					 * - WITH_CODE_BLOCK: ```typescript const code = 'example'; ```
+					 * - WITH_FORMATTING: Contains "quotes" and 'apostrophes' And line breaks And    multiple     spaces
+					 */
+					specialContentDoc: Database['public']['Enums']['SpecialContentDoc'];
+				};
+				Insert: {
+					/** Make sure this gets added too
+					 * - EMPTY_DOC
+					 * - MULTI_EMPTY_DOC
+					 * - ALT_DOC_STYLE
+					 * - REGULAR_COMMENT
+					 */
+					emptyVariations: Database['public']['Enums']['EmptyVariations'];
+					id?: string;
+					/**
+					 * - LIST_ITEM: List item:
+					 * - FORMATTED_TEXT: # Heading 1 ## Heading 2 > Blockquote
+					 */
+					markdownDoc: Database['public']['Enums']['MarkdownDoc'];
+					/**
+					 * - VALUE_1: Value 1 description
+					 * - VALUE_2: Value 2 description
+					 */
+					memberOnlyDoc: Database['public']['Enums']['MemberOnlyDoc'];
+					/**
+					 * - VALUE_1: Documented value
+					 * - VALUE_2
+					 * - VALUE_3
+					 * - VALUE_4: Doc with inline // comment
+					 */
+					mixedDoc: Database['public']['Enums']['MixedDoc'];
+					/**
+					 * - VALUE_1
+					 * - VALUE_2
+					 */
+					noDoc: Database['public']['Enums']['NoDoc'];
+					/**
+					 * - VALUE_1
+					 * - VALUE_2
+					 */
+					parentOnlyDoc: Database['public']['Enums']['ParentOnlyDoc'];
+					/**
+					 * - USER: A regular user.
+					 * - ADMIN: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
+					 */
+					role: Database['public']['Enums']['UserRole'];
+					/**
+					 * - WITH_LINKS: Contains URLs: https://example.com And email: test@example.com
+					 * - SPECIAL_CHARS: Contains *special* characters: @#$%^&*()_+ and émojis 🎉 ⭐️
+					 * - WITH_CODE_BLOCK: ```typescript const code = 'example'; ```
+					 * - WITH_FORMATTING: Contains "quotes" and 'apostrophes' And line breaks And    multiple     spaces
+					 */
+					specialContentDoc: Database['public']['Enums']['SpecialContentDoc'];
+				};
+				Update: {
+					/** Make sure this gets added too
+					 * - EMPTY_DOC
+					 * - MULTI_EMPTY_DOC
+					 * - ALT_DOC_STYLE
+					 * - REGULAR_COMMENT
+					 */
+					emptyVariations?: Database['public']['Enums']['EmptyVariations'];
+					id?: string;
+					/**
+					 * - LIST_ITEM: List item:
+					 * - FORMATTED_TEXT: # Heading 1 ## Heading 2 > Blockquote
+					 */
+					markdownDoc?: Database['public']['Enums']['MarkdownDoc'];
+					/**
+					 * - VALUE_1: Value 1 description
+					 * - VALUE_2: Value 2 description
+					 */
+					memberOnlyDoc?: Database['public']['Enums']['MemberOnlyDoc'];
+					/**
+					 * - VALUE_1: Documented value
+					 * - VALUE_2
+					 * - VALUE_3
+					 * - VALUE_4: Doc with inline // comment
+					 */
+					mixedDoc?: Database['public']['Enums']['MixedDoc'];
+					/**
+					 * - VALUE_1
+					 * - VALUE_2
+					 */
+					noDoc?: Database['public']['Enums']['NoDoc'];
+					/**
+					 * - VALUE_1
+					 * - VALUE_2
+					 */
+					parentOnlyDoc?: Database['public']['Enums']['ParentOnlyDoc'];
+					/**
+					 * - USER: A regular user.
+					 * - ADMIN: An administrator. Users with this role have elevated privileges within the application. Administrators can typically access all features, manage other users, and perform system-wide operations that are not available to regular users.
+					 */
+					role?: Database['public']['Enums']['UserRole'];
+					/**
+					 * - WITH_LINKS: Contains URLs: https://example.com And email: test@example.com
+					 * - SPECIAL_CHARS: Contains *special* characters: @#$%^&*()_+ and émojis 🎉 ⭐️
+					 * - WITH_CODE_BLOCK: ```typescript const code = 'example'; ```
+					 * - WITH_FORMATTING: Contains "quotes" and 'apostrophes' And line breaks And    multiple     spaces
+					 */
+					specialContentDoc?: Database['public']['Enums']['SpecialContentDoc'];
+				};
+				Relationships: [];
+			};
 		};
 		Views: {
-			/* No support for views */
+			/* Views are within tables */
 		};
 		Functions: {
 			/* No support for functions */
 		};
 		Enums: {
+			/** Empty variations
+			 * - EMPTY_DOC
+			 * - MULTI_EMPTY_DOC
+			 * - ALT_DOC_STYLE
+			 * - REGULAR_COMMENT
+			 */
+			EmptyVariations: 'EMPTY_DOC' | 'MULTI_EMPTY_DOC' | 'ALT_DOC_STYLE' | 'REGULAR_COMMENT';
+			/** Demonstrates documentation with various indentation
+			 * - INDENTED_VALUE: Indented documentation Also indented More indentation
+			 * - NORMAL_VALUE: Non-indented doc For comparison
+			 */
+			IndentationDoc: 'INDENTED_VALUE' | 'NORMAL_VALUE';
+			/**
+			 * Documentation with markdown formatting
+			 * Demonstrates **bold**, *italic*, and `code`
+			 * - First point
+			 * - Second point
+			 * # Heading 1
+			 * ## Heading 2
+			 * - LIST_ITEM: List item:
+			 * - FORMATTED_TEXT: # Heading 1 ## Heading 2 > Blockquote
+			 */
+			MarkdownDoc: 'LIST_ITEM' | 'FORMATTED_TEXT';
+			/**
+			 * - VALUE_1: Value 1 description
+			 * - VALUE_2: Value 2 description
+			 */
+			MemberOnlyDoc: 'VALUE_1' | 'VALUE_2';
+			/**
+			 * Mixed documentation patterns
+			 * Tests various documentation combinations
+			 * - VALUE_1: Documented value
+			 * - VALUE_2
+			 * - VALUE_3
+			 * - VALUE_4: Doc with inline // comment
+			 */
+			MixedDoc: 'VALUE_1' | 'VALUE_2' | 'VALUE_3' | 'VALUE_4';
+			/** Mixed length documentation
+			 * - SHORT: Short
+			 * - LONG: This is a much longer documentation string that extends beyond the typical length of a documentation comment and includes multiple lines of detailed description about the enum value
+			 * - MEDIUM: Medium length With two lines
+			 */
+			MixedLengthDoc: 'SHORT' | 'LONG' | 'MEDIUM';
+			/** No documentation at all
+			 * - VALUE_1
+			 * - VALUE_2
+			 */
+			NoDoc: 'VALUE_1' | 'VALUE_2';
+			/**
+			 * Parent only documentation
+			 * This enum demonstrates documentation only at the enum level
+			 * - VALUE_1
+			 * - VALUE_2
+			 */
+			ParentOnlyDoc: 'VALUE_1' | 'VALUE_2';
 			/**
 			 * Post status
 			 *
@@ -169,6 +379,13 @@ export type Database = {
 			 * - PUBLISHED: A published post
 			 */
 			PostStatus: 'DRAFT' | 'PUBLISHED';
+			/** Documentation with special content
+			 * - WITH_LINKS: Contains URLs: https://example.com And email: test@example.com
+			 * - SPECIAL_CHARS: Contains *special* characters: @#$%^&*()_+ and émojis 🎉 ⭐️
+			 * - WITH_CODE_BLOCK: ```typescript const code = 'example'; ```
+			 * - WITH_FORMATTING: Contains "quotes" and 'apostrophes' And line breaks And    multiple     spaces
+			 */
+			SpecialContentDoc: 'WITH_LINKS' | 'SPECIAL_CHARS' | 'WITH_CODE_BLOCK' | 'WITH_FORMATTING';
 			/**
 			 * User role
 			 *

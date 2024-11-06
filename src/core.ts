@@ -98,7 +98,11 @@ function generateSchemaDefinition(schema: SchemaObject, generatorConfig: Generat
  * @param schemaTables An array of DMMF Model objects representing tables
  * @returns A string containing the tables definition
  */
-function generateTablesDefinition(schemaTables: DMMF.Model[], schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
+function generateTablesDefinition(
+  schemaTables: DMMF.Model[],
+  schemaEnums: DMMF.DatamodelEnum[],
+  generatorConfig: GeneratorConfig
+): string {
   if (!schemaTables.length) return '[_ in never]: never';
 
   return schemaTables
@@ -122,10 +126,15 @@ function generateTablesDefinition(schemaTables: DMMF.Model[], schemaEnums: DMMF.
     .join(';');
 }
 
-function generateColEnumDocs(col: DMMF.Field, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
+function generateColEnumDocs(
+  col: DMMF.Field,
+  schemaEnums: DMMF.DatamodelEnum[],
+  generatorConfig: GeneratorConfig
+): string {
   let enumModel = col.kind === 'enum' ? schemaEnums.find((e) => e.name === col.type) : null;
   if (!enumModel) return '';
-  enumModel = {...enumModel, documentation: col.documentation };
+  // TODO: Append enumModel.documentation to col.documentation as well
+  enumModel = { ...enumModel, documentation: col.documentation };
   return enumModel ? generateEnumMemberDocs(enumModel, generatorConfig) : '';
 }
 
@@ -134,7 +143,11 @@ function generateColEnumDocs(col: DMMF.Field, schemaEnums: DMMF.DatamodelEnum[],
  * @param table The DMMF Model object representing a table
  * @returns A string containing the row definition
  */
-function generateTableRowDefinition(table: DMMF.Model, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
+function generateTableRowDefinition(
+  table: DMMF.Model,
+  schemaEnums: DMMF.DatamodelEnum[],
+  generatorConfig: GeneratorConfig
+): string {
   return table.fields
     .filter(filterField)
     .sort(alphaSort)
@@ -152,7 +165,11 @@ function generateTableRowDefinition(table: DMMF.Model, schemaEnums: DMMF.Datamod
  * @param table The DMMF Model object representing a table
  * @returns A string containing the insert definition
  */
-function generateTableInsertDefinition(table: DMMF.Model, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
+function generateTableInsertDefinition(
+  table: DMMF.Model,
+  schemaEnums: DMMF.DatamodelEnum[],
+  generatorConfig: GeneratorConfig
+): string {
   return table.fields
     .filter(filterField)
     .sort(alphaSort)
@@ -174,7 +191,11 @@ function generateTableInsertDefinition(table: DMMF.Model, schemaEnums: DMMF.Data
  * @param table The DMMF Model object representing a table
  * @returns A string containing the update definition
  */
-function generateTableUpdateDefinition(table: DMMF.Model, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
+function generateTableUpdateDefinition(
+  table: DMMF.Model,
+  schemaEnums: DMMF.DatamodelEnum[],
+  generatorConfig: GeneratorConfig
+): string {
   return table.fields
     .filter(filterField)
     .sort(alphaSort)
@@ -194,7 +215,11 @@ function generateTableUpdateDefinition(table: DMMF.Model, schemaEnums: DMMF.Data
  * @param table The DMMF Model object representing a table
  * @returns A string containing the relationships definition
  */
-function generateTableRelationshipsDefinition(table: DMMF.Model, schemaEnums: DMMF.DatamodelEnum[], generatorConfig: GeneratorConfig): string {
+function generateTableRelationshipsDefinition(
+  table: DMMF.Model,
+  schemaEnums: DMMF.DatamodelEnum[],
+  generatorConfig: GeneratorConfig
+): string {
   return table.fields
     .filter((field) => field.relationName && field?.relationFromFields?.length && field?.relationToFields?.length)
     .sort(alphaSort)
@@ -217,7 +242,7 @@ function generateTableRelationshipsDefinition(table: DMMF.Model, schemaEnums: DM
  * @returns A string indicating that views are not supported
  */
 function generateViewsDefinition(): string {
-  return '/* No support for views */';
+  return '/* Views are within tables */';
 }
 
 /**
@@ -238,13 +263,9 @@ function generateEnumsDefinition(schemaEnums: DMMF.DatamodelEnum[], generatorCon
 
   return schemaEnums
     .map((enm) => {
-      const enumRootDoc = renderDoc(enm.documentation, generatorConfig, { noEndingStar: true });
       const enumMemberDocs = generateEnumMemberDocs(enm, generatorConfig);
-
-      // @ts-expect-error: documentation is not typed
-      const hasMemberDocs = enm.values.some((member) => !!member?.documentation?.trim());
-
-      const finalEnumDoc = `${enumRootDoc}${hasMemberDocs ? enumMemberDocs : ''}`;
+      const enumRootDoc = renderDoc(enm.documentation, generatorConfig, { noEndingStar: !!enumMemberDocs });
+      const finalEnumDoc = `${enumRootDoc}${enumMemberDocs}`;
 
       return `${finalEnumDoc}${enm.name}: ${enm.values.map((member) => `"${member.name}"`).join(' | ')}`;
     })
@@ -253,14 +274,11 @@ function generateEnumsDefinition(schemaEnums: DMMF.DatamodelEnum[], generatorCon
 
 function generateEnumMemberDocs(enm: DMMF.DatamodelEnum, generatorConfig: GeneratorConfig): string {
   return renderDoc(
-    enm.values
+    enm.values.map((member) => {
       // @ts-expect-error: documentation is not typed
-      .filter((member) => !!member?.documentation?.trim())
-      .map(
-        (member) =>
-          // @ts-expect-error: documentation is not typed
-          `\n- ${member.name}: ${member.documentation?.split('\n').join(' ')}`
-      ),
+      const doc = member.documentation?.trim()?.split('\n').join(' ');
+      return `\n- ${member.name}${doc ? `: ${doc}` : ''}`;
+    }),
     generatorConfig,
     {
       noStartingStar: !!enm.documentation,
