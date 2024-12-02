@@ -1,4 +1,15 @@
-# Prisma Supabase Generator
+<h1 align="center">Prisma Supabase</h1>
+<p align="center">
+  <a href="https://www.npmjs.com/package/prisma-supabase" target="_blank" rel="noopener">
+    <img src="https://img.shields.io/npm/dt/prisma-supabase.svg" alt="Total Downloads" />
+  </a>
+  <a href="https://www.npmjs.com/package/prisma-supabase" target="_blank" rel="noopener">
+    <img src="https://img.shields.io/npm/v/prisma-supabase.svg" alt="npm package"/>
+  </a>
+  <a href="https://github.com/notiz-dev/prisma-supabase/blob/main/LICENSE" target="_blank" rel="noopener">
+    <img src="https://img.shields.io/npm/l/prisma-supabase.svg" alt="License">
+  </a>
+</p>
 
 A Prisma generator that creates types for the [@supabase/supabase-js](https://github.com/supabase/supabase-js) or [@supabase/postgrest-js](https://github.com/supabase/postgrest-js) client without the need for an online or dockerized database, resulting in faster generation times. This is particularly useful for projects that only use PostgREST.
 
